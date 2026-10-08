@@ -1,0 +1,71 @@
+{
+  "_comment": "Worked changed -> reverify flow. Two MCP calls; the second uses the arguments handed back in the first response's next_actions. Envelopes abbreviated to the load-bearing fields.",
+  "step_1_call": {
+    "tool": "warpline_change_list",
+    "arguments": {"repo": "/abs/repo", "rev_range": "HEAD~1..HEAD"}
+  },
+  "step_1_response": {
+    "schema": "warpline.change_list.v1",
+    "ok": true,
+    "data": {
+      "items": [
+        {
+          "change_id": "warpline:change:42",
+          "entity": {
+            "warpline_entity_key_id": 7,
+            "locator": "python:function:src/pkg/mod.py::fn",
+            "sei": "loomweave:eid:0123456789abcdef0123456789abcdef",
+            "path": "src/pkg/mod.py"
+          },
+          "change_kind": "modified",
+          "actor": "agent:codex",
+          "commit": "aaaaaaaa",
+          "changed_at": "2026-06-13T00:00:00Z"
+        }
+      ],
+      "changed_refs": [
+        {"kind": "sei", "value": "loomweave:eid:0123456789abcdef0123456789abcdef"}
+      ]
+    },
+    "next_actions": {
+      "warpline_reverify_worklist_get": {
+        "tool": "warpline_reverify_worklist_get",
+        "arguments": {"repo": "/abs/repo", "changed_entity_key_ids": [7], "depth": 2}
+      }
+    },
+    "enrichment": {"sei": "present", "edges": "absent", "work": "unavailable",
+                   "risk": "unavailable", "governance": "unavailable", "requirements": "unavailable"},
+    "meta": {"local_only": true, "peer_side_effects": []}
+  },
+  "step_2_call": {
+    "tool": "warpline_reverify_worklist_get",
+    "arguments": {"repo": "/abs/repo", "changed_entity_key_ids": [7], "depth": 2}
+  },
+  "step_2_response": {
+    "schema": "warpline.reverify_worklist.v1",
+    "ok": true,
+    "data": {
+      "completeness": "NO_SNAPSHOT",
+      "staleness": {"snapshot_commit": null, "commits_behind": null},
+      "items": [
+        {
+          "entity": {"locator": "python:function:src/pkg/mod.py::fn",
+                     "sei": "loomweave:eid:0123456789abcdef0123456789abcdef"},
+          "priority": "unknown",
+          "reason": "changed",
+          "depth": 0,
+          "why": [],
+          "suggested_verification": [
+            {"kind": "test", "command": "run tests touching this entity if known"}
+          ],
+          "enrichment": {"work": [], "risk": [], "governance": [], "requirements": []}
+        }
+      ],
+      "next_actions": {"filigree": []}
+    },
+    "enrichment": {"sei": "absent", "edges": "absent", "work": "unavailable",
+                   "risk": "unavailable", "governance": "unavailable", "requirements": "unavailable"},
+    "meta": {"local_only": true, "peer_side_effects": []},
+    "_note": "completeness NO_SNAPSHOT -> run warpline_edge_snapshot_capture, then retry to get downstream (reason: downstream) items."
+  }
+}
